@@ -14,6 +14,7 @@
             --discord-message-hover: #32353b;
             --discord-embed-bg: #2f3136;
             --discord-input-bg: #40444b;
+            --discord-saved-user: #4f545c;
         }
 
         * {
@@ -338,6 +339,71 @@
             font-size: 14px;
         }
 
+        /* Saved users section */
+        .saved-users {
+            background-color: var(--discord-channel-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .saved-users.active {
+            max-height: 500px;
+            margin-bottom: 15px;
+        }
+
+        .saved-user {
+            display: flex;
+            align-items: center;
+            background-color: var(--discord-saved-user);
+            border-radius: 20px;
+            padding: 5px 10px 5px 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .saved-user:hover {
+            background-color: var(--discord-accent);
+        }
+
+        .saved-user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 8px;
+            overflow: hidden;
+        }
+
+        .saved-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .saved-user-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toggle-saved-users {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            user-select: none;
+        }
+
+        .toggle-saved-users label {
+            margin-left: 8px;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
         /* Message editor */
         .message-editor {
             background-color: var(--discord-input-bg);
@@ -405,6 +471,18 @@
             <h1>Discord Chat Generator</h1>
             <p>Tạo và chỉnh sửa hình ảnh mô phỏng cuộc trò chuyện Discord</p>
         </header>
+
+        <div class="toggle-saved-users">
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggle-saved-users-btn">
+                <span class="toggle-slider"></span>
+            </label>
+            <label for="toggle-saved-users-btn">Hiển thị người dùng đã lưu</label>
+        </div>
+        
+        <div class="saved-users" id="saved-users-container">
+            <!-- Người dùng đã lưu sẽ được thêm vào đây -->
+        </div>
 
         <div class="mobile-warning">
             Lưu ý: Ứng dụng này hoạt động tốt nhất trên màn hình lớn. Một số tính năng có thể bị hạn chế trên thiết bị di động.
@@ -500,9 +578,91 @@
             const exportBtn = document.getElementById('export-btn');
             const canvas = document.getElementById('export-canvas');
             const ctx = canvas.getContext('2d');
+            const savedUsersContainer = document.getElementById('saved-users-container');
+            const toggleSavedUsersBtn = document.getElementById('toggle-saved-users-btn');
             
             // Message counter to generate unique IDs
             let messageCounter = 0;
+            
+            // Saved users array
+            let savedUsers = JSON.parse(localStorage.getItem('discordChatSavedUsers')) || [];
+            
+            // Toggle saved users section
+            toggleSavedUsersBtn.addEventListener('change', function() {
+                savedUsersContainer.classList.toggle('active', this.checked);
+            });
+            
+            // Load saved users
+            function loadSavedUsers() {
+                savedUsersContainer.innerHTML = '';
+                
+                if (savedUsers.length === 0) {
+                    const noUserElem = document.createElement('div');
+                    noUserElem.textContent = 'Chưa có người dùng nào được lưu';
+                    noUserElem.style.color = '#72767d';
+                    noUserElem.style.padding = '5px';
+                    savedUsersContainer.appendChild(noUserElem);
+                    return;
+                }
+                
+                savedUsers.forEach((user, index) => {
+                    const userElem = document.createElement('div');
+                    userElem.className = 'saved-user';
+                    userElem.dataset.index = index;
+                    
+                    userElem.innerHTML = `
+                        <div class="saved-user-avatar">
+                            <img src="${user.avatar || '/api/placeholder/24/24'}" alt="Avatar" onerror="this.src='/api/placeholder/24/24'">
+                        </div>
+                        <div class="saved-user-name" style="color: ${user.color || '#ffffff'}">${escapeHTML(user.username)}</div>
+                    `;
+                    
+                    userElem.addEventListener('click', function() {
+                        const index = parseInt(this.dataset.index);
+                        const user = savedUsers[index];
+                        
+                        document.getElementById('username').value = user.username;
+                        document.getElementById('username-color').value = user.color;
+                        document.getElementById('avatar-url').value = user.avatar;
+                    });
+                    
+                    savedUsersContainer.appendChild(userElem);
+                });
+            }
+            
+            // Save user to local storage
+            function saveUser() {
+                const username = document.getElementById('username').value;
+                const color = document.getElementById('username-color').value;
+                const avatar = document.getElementById('avatar-url').value;
+                
+                // Check if user already exists
+                const existingIndex = savedUsers.findIndex(user => 
+                    user.username === username && 
+                    user.color === color && 
+                    user.avatar === avatar
+                );
+                
+                // If user doesn't exist and has a username, add to saved users
+                if (existingIndex === -1 && username.trim()) {
+                    savedUsers.push({
+                        username,
+                        color,
+                        avatar
+                    });
+                    
+                    // Keep only the latest 10 users
+                    if (savedUsers.length > 10) {
+                        savedUsers = savedUsers.slice(-10);
+                    }
+                    
+                    // Save to local storage
+                    localStorage.setItem('discordChatSavedUsers', JSON.stringify(savedUsers));
+                    
+                    // Reload saved users
+                    loadSavedUsers();
+                }
+            }
             
             // Handle avatar file uploads
             document.getElementById('avatar-upload').addEventListener('change', function(e) {
@@ -535,7 +695,11 @@
             });
             
             // Add message
-            addMessageBtn.addEventListener('click', addMessage);
+            addMessageBtn.addEventListener('click', function() {
+                addMessage();
+                // Save user information after adding a message
+                saveUser();
+            });
             
             function addMessage() {
                 const username = document.getElementById('username').value || 'User';
@@ -732,6 +896,9 @@
             // Initialize with default values
             document.getElementById('message-time').value = getCurrentTime();
             
+            // Load saved users
+            loadSavedUsers();
+            
             // Helper function to get current time in Discord format
             function getCurrentTime() {
                 const now = new Date();
@@ -742,4 +909,4 @@
         });
     </script>
 </body>
-  </html>
+    </html>
