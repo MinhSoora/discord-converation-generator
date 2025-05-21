@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Chat Generator</title>
+    <style>
+        :root {
+            --discord-bg: #36393f;
+            --discord-channel-bg: #2f3136;
+            --discord-text: #dcddde;
+            --discord-sidebar: #202225;
+            --discord-accent: #5865f2;
+            --discord-message-hover: #32353b;
+            --discord-embed-bg: #2f3136;
+            --discord-input-bg: #40444b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--discord-bg);
+            color: var(--discord-text);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: var(--discord-sidebar);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .app-container {
+                flex-direction: row;
+            }
+        }
+
+        .controls {
+            background-color: var(--discord-channel-bg);
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1;
+        }
+
+        .preview-container {
+            background-color: var(--discord-channel-bg);
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1;
+            position: relative;
+        }
+
+        #message-preview {
+            background-color: var(--discord-bg);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-y: auto;
+            max-height: 70vh;
+            min-height: 400px;
+        }
+
+        .control-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #4f545c;
+            padding-bottom: 15px;
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: none;
+            background-color: var(--discord-input-bg);
+            color: var(--discord-text);
+        }
+
+        input[type="color"] {
+            height: 40px;
+            padding: 2px;
+        }
+
+        button {
+            background-color: var(--discord-accent);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 5px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #4752c4;
+        }
+
+        .message-list {
+            margin-top: 20px;
+        }
+
+        .discord-message {
+            display: flex;
+            padding: 10px 0;
+            margin-bottom: 5px;
+        }
+
+        .discord-message:hover {
+            background-color: var(--discord-message-hover);
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+            overflow: hidden;
+        }
+
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 5px;
+        }
+
+        .message-username {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .message-timestamp {
+            font-size: 12px;
+            color: #72767d;
+        }
+
+        .message-text {
+            margin-bottom: 8px;
+            word-wrap: break-word;
+        }
+
+        .message-image {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .message-attachments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .attachment-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 4px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .discord-embed {
+            border-left: 4px solid #5865f2;
+            background-color: var(--discord-embed-bg);
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 5px;
+            max-width: 520px;
+        }
+
+        .discord-embed img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+
+        .message-options {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .discord-message:hover .message-options {
+            opacity: 1;
+        }
+
+        .option-btn {
+            background: transparent;
+            color: #72767d;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        .option-btn:hover {
+            color: var(--discord-text);
+            background-color: transparent;
+        }
+
+        #canvas-container {
+            display: none;
+        }
+
+        .mobile-warning {
+            display: none;
+            background-color: #faa61a;
+            color: #000;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        @media (max-width: 767px) {
+            .mobile-warning {
+                display: block;
+            }
+        }
+
+        /* Style form elements more like Discord */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Preview header with embed style */
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        /* Embed-like frame */
+        .embed-frame {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #202225;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .embed-header {
+            background-color: var(--discord-sidebar);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .embed-header-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #ff605c;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .embed-header-dot:nth-child(2) {
+            background-color: #ffbd44;
+        }
+
+        .embed-header-dot:nth-child(3) {
+            background-color: #00ca4e;
+        }
+
+        .embed-title {
+            flex-grow: 1;
+            text-align: center;
+            color: #dcddde;
+            font-size: 14px;
+        }
+
+        /* Message editor */
+        .message-editor {
+            background-color: var(--discord-input-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .message-editor-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--discord-accent);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Discord Chat Generator</h1>
+            <p>Tạo và chỉnh sửa hình ảnh mô phỏng cuộc trò chuyện Discord</p>
+        </header>
+
+        <div class="mobile-warning">
+            Lưu ý: Ứng dụng này hoạt động tốt nhất trên màn hình lớn. Một số tính năng có thể bị hạn chế trên thiết bị di động.
+        </div>
+
+        <div class="app-container">
+            <div class="controls">
+                <div class="control-section">
+                    <h2>Tin nhắn mới</h2>
+                    <div class="form-group">
+                        <label for="username">Tên người dùng:</label>
+                        <input type="text" id="username" value="User">
+                    </div>
+                    <div class="form-group">
+                        <label for="username-color">Màu tên người dùng:</label>
+                        <input type="color" id="username-color" value="#5865f2">
+                    </div>
+                    <div class="form-group">
+                        <label for="avatar-url">URL Avatar (hoặc tải lên):</label>
+                        <input type="text" id="avatar-url" placeholder="URL của avatar">
+                    </div>
+                    <div class="form-group">
+                        <label for="avatar-upload">Tải lên Avatar:</label>
+                        <input type="file" id="avatar-upload" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label for="message-time">Thời gian tin nhắn:</label>
+                        <input type="text" id="message-time" value="Hôm nay lúc 12:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="message-text">Nội dung tin nhắn:</label>
+                        <textarea id="message-text" placeholder="Nhập nội dung tin nhắn..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="message-image">Hình ảnh đính kèm:</label>
+                        <input type="file" id="message-image" accept="image/*">
+                    </div>
+                    <div class="buttons">
+                        <button id="add-message-btn">Thêm tin nhắn</button>
+                        <button id="clear-form-btn">Xóa form</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h2>Tùy chỉnh và xuất ảnh</h2>
+                    <div class="form-group">
+                        <label for="export-quality">Chất lượng ảnh (1-10):</label>
+                        <input type="number" id="export-quality" min="1" max="10" value="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="export-scale">Tỷ lệ phóng to (1-5):</label>
+                        <input type="number" id="export-scale" min="1" max="5" step="0.5" value="2">
+                    </div>
+                    <div class="buttons">
+                        <button id="export-btn">Tải xuống ảnh</button>
+                        <button id="clear-all-btn">Xóa tất cả tin nhắn</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-container">
+                <div class="preview-header">
+                    <h2>Xem trước</h2>
+                </div>
+                <div class="embed-frame">
+                    <div class="embed-header">
+                        <div class="embed-header-dot"></div>
+                        <div class="embed-header-dot"></div>
+                        <div class="embed-header-dot"></div>
+                        <div class="embed-title">Discord Chat</div>
+                    </div>
+                    <div id="message-preview">
+                        <div class="message-list" id="messages-container">
+                            <!-- Tin nhắn sẽ được thêm vào đây -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="export-canvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const messagesContainer = document.getElementById('messages-container');
+            const addMessageBtn = document.getElementById('add-message-btn');
+            const clearFormBtn = document.getElementById('clear-form-btn');
+            const clearAllBtn = document.getElementById('clear-all-btn');
+            const exportBtn = document.getElementById('export-btn');
+            const canvas = document.getElementById('export-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Message counter to generate unique IDs
+            let messageCounter = 0;
+            
+            // Handle avatar file uploads
+            document.getElementById('avatar-upload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        document.getElementById('avatar-url').value = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Clear form
+            clearFormBtn.addEventListener('click', function() {
+                document.getElementById('username').value = 'User';
+                document.getElementById('username-color').value = '#5865f2';
+                document.getElementById('avatar-url').value = '';
+                document.getElementById('message-time').value = 'Hôm nay lúc 12:00';
+                document.getElementById('message-text').value = '';
+                document.getElementById('message-image').value = '';
+                document.getElementById('avatar-upload').value = '';
+            });
+            
+            // Clear all messages
+            clearAllBtn.addEventListener('click', function() {
+                if (confirm('Bạn có chắc muốn xóa tất cả tin nhắn?')) {
+                    messagesContainer.innerHTML = '';
+                }
+            });
+            
+            // Add message
+            addMessageBtn.addEventListener('click', addMessage);
+            
+            function addMessage() {
+                const username = document.getElementById('username').value || 'User';
+                const usernameColor = document.getElementById('username-color').value;
+                const avatarUrl = document.getElementById('avatar-url').value || '/api/placeholder/40/40';
+                const messageTime = document.getElementById('message-time').value || 'Hôm nay lúc 12:00';
+                const messageText = document.getElementById('message-text').value;
+                const messageImageInput = document.getElementById('message-image');
+                
+                // Validate
+                if (!messageText && !messageImageInput.files[0]) {
+                    alert('Vui lòng nhập nội dung tin nhắn hoặc tải lên hình ảnh!');
+                    return;
+                }
+                
+                // Create message element
+                const messageId = `message-${messageCounter++}`;
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'discord-message';
+                messageDiv.id = messageId;
+                
+                // Create message content
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">
+                        <img src="${avatarUrl}" alt="Avatar" onerror="this.src='/api/placeholder/40/40'">
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <div class="message-username" style="color: ${usernameColor}">${escapeHTML(username)}</div>
+                            <div class="message-timestamp">${escapeHTML(messageTime)}</div>
+                            <div class="message-options">
+                                <button class="option-btn edit-btn" data-id="${messageId}">Sửa</button>
+                                <button class="option-btn delete-btn" data-id="${messageId}">Xóa</button>
+                            </div>
+                        </div>
+                        <div class="message-text">${formatMessageText(messageText)}</div>
+                        <div class="message-attachments"></div>
+                    </div>
+                `;
+                
+                // Add message to container
+                messagesContainer.appendChild(messageDiv);
+                
+                // Handle image if present
+                if (messageImageInput.files && messageImageInput.files[0]) {
+                    const file = messageImageInput.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const attachmentsDiv = messageDiv.querySelector('.message-attachments');
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'attachment-preview';
+                        img.alt = 'Image Attachment';
+                        attachmentsDiv.appendChild(img);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                    messageImageInput.value = ''; // Clear the file input
+                }
+                
+                // Clear message input
+                document.getElementById('message-text').value = '';
+                
+                // Add event listeners for edit and delete buttons
+                addMessageControls();
+                
+                // Scroll to bottom
+                const preview = document.getElementById('message-preview');
+                preview.scrollTop = preview.scrollHeight;
+            }
+            
+            // Format message text (handle new lines)
+            function formatMessageText(text) {
+                if (!text) return '';
+                return escapeHTML(text).replace(/\n/g, '<br>');
+            }
+            
+            // Escape HTML to prevent XSS
+            function escapeHTML(str) {
+                if (!str) return '';
+                return str
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+            
+            // Add controls for messages
+            function addMessageControls() {
+                // Edit buttons
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.onclick = function() {
+                        const messageId = this.getAttribute('data-id');
+                        const messageDiv = document.getElementById(messageId);
+                        
+                        // Get current values
+                        const username = messageDiv.querySelector('.message-username').textContent;
+                        const usernameColor = messageDiv.querySelector('.message-username').style.color;
+                        const avatarSrc = messageDiv.querySelector('.message-avatar img').src;
+                        const timestamp = messageDiv.querySelector('.message-timestamp').textContent;
+                        const messageText = messageDiv.querySelector('.message-text').innerHTML.replace(/<br>/g, '\n');
+                        
+                        // Populate form
+                        document.getElementById('username').value = username;
+                        document.getElementById('username-color').value = rgbToHex(usernameColor);
+                        document.getElementById('avatar-url').value = avatarSrc;
+                        document.getElementById('message-time').value = timestamp;
+                        document.getElementById('message-text').value = messageText.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+                        
+                        // Delete old message
+                        messageDiv.remove();
+                    };
+                });
+                
+                // Delete buttons
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.onclick = function() {
+                        const messageId = this.getAttribute('data-id');
+                        document.getElementById(messageId).remove();
+                    };
+                });
+            }
+            
+            // Convert RGB to Hex (for color inputs)
+            function rgbToHex(rgb) {
+                // Default if parsing fails
+                if (!rgb || !rgb.includes('rgb')) return '#5865f2';
+                
+                // Extract RGB values
+                const match = rgb.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+                if (!match) return '#5865f2';
+                
+                const r = parseInt(match[1]);
+                const g = parseInt(match[2]);
+                const b = parseInt(match[3]);
+                
+                return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            }
+            
+            // Export to image
+            exportBtn.addEventListener('click', function() {
+                if (messagesContainer.children.length === 0) {
+                    alert('Không có tin nhắn nào để xuất!');
+                    return;
+                }
+                
+                const quality = parseInt(document.getElementById('export-quality').value) || 8;
+                const scale = parseFloat(document.getElementById('export-scale').value) || 2;
+                
+                // Get the messages container
+                const previewElement = document.getElementById('message-preview');
+                
+                // Set canvas dimensions
+                canvas.width = previewElement.offsetWidth * scale;
+                canvas.height = previewElement.offsetHeight * scale;
+                
+                // Draw background
+                ctx.fillStyle = '#36393f';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Use html2canvas library (dynamically loaded)
+                if (typeof html2canvas === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    script.onload = function() {
+                        renderToCanvas(previewElement, scale, quality);
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    renderToCanvas(previewElement, scale, quality);
+                }
+            });
+            
+            function renderToCanvas(element, scale, quality) {
+                html2canvas(element, {
+                    scale: scale,
+                    backgroundColor: '#36393f',
+                    logging: false,
+                    useCORS: true
+                }).then(canvas => {
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.download = 'discord-chat.png';
+                    link.href = canvas.toDataURL('image/png', quality / 10);
+                    link.click();
+                }).catch(err => {
+                    console.error('Error generating image:', err);
+                    alert('Có lỗi khi tạo ảnh. Vui lòng thử lại!');
+                });
+            }
+            
+            // Initialize with default values
+            document.getElementById('message-time').value = getCurrentTime();
+            
+            // Helper function to get current time in Discord format
+            function getCurrentTime() {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                return `Hôm nay lúc ${hours}:${minutes}`;
+            }
+        });
+    </script>
+</body>
+  </html>
