@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Message Generator</title>
+    <title>Enhanced Discord Message Generator</title>
     <style>
         :root {
             --discord-bg: #313338;
@@ -17,6 +17,7 @@
             --discord-button-hover: #4752c4;
             --discord-mention-bg: rgba(88, 101, 242, 0.3);
             --discord-mention-text: #c9cdfb;
+            --discord-role-mention-bg: rgba(88, 101, 242, 0.3);
         }
         
         * {
@@ -261,11 +262,18 @@
             margin-right: 5px;
         }
         
+        .mention, .role-mention {
+            border-radius: 3px;
+            padding: 0 2px;
+        }
+        
         .mention {
             background-color: var(--discord-mention-bg);
             color: var(--discord-mention-text);
-            border-radius: 3px;
-            padding: 0 2px;
+        }
+        
+        .role-mention {
+            background-color: var(--discord-role-mention-bg);
         }
         
         .download-button {
@@ -313,6 +321,122 @@
             border-radius: 4px;
         }
         
+        .welcome-message {
+            padding: 20px;
+            border-radius: 4px;
+            background-color: rgba(114, 137, 218, 0.1);
+            border-left: 4px solid #7289da;
+            margin-top: 15px;
+        }
+        
+        .welcome-title {
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .welcome-content {
+            color: #dcddde;
+        }
+        
+        .text-bold {
+            font-weight: 700;
+        }
+        
+        .text-italic {
+            font-style: italic;
+        }
+        
+        .text-underline {
+            text-decoration: underline;
+        }
+        
+        .text-strikethrough {
+            text-decoration: line-through;
+        }
+        
+        .text-code {
+            background-color: #2f3136;
+            border-radius: 3px;
+            padding: 0 3px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        
+        .text-codeblock {
+            background-color: #2f3136;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            white-space: pre;
+            margin: 4px 0;
+        }
+        
+        .text-spoiler {
+            background-color: #202225;
+            color: transparent;
+            border-radius: 3px;
+            padding: 0 2px;
+        }
+        
+        .text-spoiler:hover {
+            background-color: rgba(32, 34, 37, 0.5);
+            color: #dcddde;
+        }
+        
+        .text-quote {
+            border-left: 4px solid #4f545c;
+            padding-left: 8px;
+            margin: 4px 0;
+            color: #b9bbbe;
+        }
+        
+        .formatting-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        
+        .format-btn {
+            padding: 4px 8px;
+            background-color: var(--discord-input-bg);
+            color: var(--discord-light-text);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .format-btn:hover {
+            background-color: #484b51;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            background-color: var(--discord-input-bg);
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            color: #b9bbbe;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--discord-button);
+            color: var(--discord-light-text);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -335,63 +459,137 @@
 </head>
 <body>
     <div class="container">
-        <h1>Discord Message Generator</h1>
+        <h1>Enhanced Discord Message Generator</h1>
         
         <div class="saved-profiles" id="savedProfiles">
             <!-- Saved profiles will appear here -->
         </div>
         
+        <div class="tabs">
+            <button class="tab active" data-tab="regular">Regular Message</button>
+            <button class="tab" data-tab="welcome">Welcome Message</button>
+            <button class="tab" data-tab="ping-settings">Ping Settings</button>
+        </div>
+        
         <div class="input-section">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="Username">
+            <div class="tab-content active" id="regular-tab">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="Username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="usernameColor">Username Color</label>
+                        <input type="color" id="usernameColor" value="#ffffff">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="badge">Badge</label>
+                        <select id="badge">
+                            <option value="none">None</option>
+                            <option value="bot">BOT</option>
+                            <option value="valc">VALC</option>
+                            <option value="boss">BOSS</option>
+                            <option value="loli">LOLI</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                        <input type="text" id="customBadge" style="display: none; margin-top: 5px;" placeholder="Custom badge text">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="avatar">Avatar (Upload image)</label>
+                        <input type="file" id="avatar" accept="image/*">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="timestamp">Timestamp</label>
+                        <input type="text" id="timestamp" placeholder="HH:MM">
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="usernameColor">Username Color</label>
-                    <input type="color" id="usernameColor" value="#ffffff">
+                    <label for="replyTo">Reply to (Leave empty for no reply)</label>
+                    <input type="text" id="replyTo" placeholder="Username">
                 </div>
                 
                 <div class="form-group">
-                    <label for="badge">Badge</label>
-                    <select id="badge">
-                        <option value="none">None</option>
-                        <option value="bot">BOT</option>
-                        <option value="valc">VALC</option>
-                        <option value="boss">BOSS</option>
-                        <option value="loli">LOLI</option>
-                        <option value="custom">Custom</option>
-                    </select>
-                    <input type="text" id="customBadge" style="display: none; margin-top: 5px;" placeholder="Custom badge text">
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="avatar">Avatar (Upload image)</label>
-                    <input type="file" id="avatar" accept="image/*">
+                    <label for="messageContent">Message Content</label>
+                    <div class="formatting-buttons">
+                        <button class="format-btn" data-format="bold" title="Bold">B</button>
+                        <button class="format-btn" data-format="italic" title="Italic"><i>I</i></button>
+                        <button class="format-btn" data-format="underline" title="Underline"><u>U</u></button>
+                        <button class="format-btn" data-format="strikethrough" title="Strikethrough"><s>S</s></button>
+                        <button class="format-btn" data-format="code" title="Code">Code</button>
+                        <button class="format-btn" data-format="codeblock" title="Code Block">Code Block</button>
+                        <button class="format-btn" data-format="spoiler" title="Spoiler">Spoiler</button>
+                        <button class="format-btn" data-format="quote" title="Quote">Quote</button>
+                        <button class="format-btn" data-format="user-mention" title="Mention User">@User</button>
+                        <button class="format-btn" data-format="role-mention" title="Mention Role">@Role</button>
+                    </div>
+                    <textarea id="messageContent" rows="3" placeholder="Type your message here..."></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label for="timestamp">Timestamp</label>
-                    <input type="text" id="timestamp" placeholder="HH:MM">
+                    <label for="attachment">Attachment (Upload image)</label>
+                    <input type="file" id="attachment" accept="image/*">
                 </div>
             </div>
             
-            <div class="form-group">
-                <label for="replyTo">Reply to (Leave empty for no reply)</label>
-                <input type="text" id="replyTo" placeholder="Username">
+            <div class="tab-content" id="welcome-tab">
+                <div class="form-group">
+                    <label for="welcomeTitle">Welcome Message Title</label>
+                    <input type="text" id="welcomeTitle" placeholder="Welcome to the server!">
+                </div>
+                <div class="form-group">
+                    <label for="welcomeContent">Welcome Message Content</label>
+                    <textarea id="welcomeContent" rows="4" placeholder="Welcome message content here..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="serverName">Server Name</label>
+                    <input type="text" id="serverName" placeholder="Server Name">
+                </div>
+                <div class="form-group">
+                    <label for="welcomeColor">Welcome Message Border Color</label>
+                    <input type="color" id="welcomeColor" value="#7289da">
+                </div>
+                <button id="addWelcomeMessage">Add Welcome Message</button>
             </div>
             
-            <div class="form-group">
-                <label for="messageContent">Message Content</label>
-                <textarea id="messageContent" rows="3" placeholder="Type your message here..."></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="attachment">Attachment (Upload image)</label>
-                <input type="file" id="attachment" accept="image/*">
+            <div class="tab-content" id="ping-settings-tab">
+                <div class="form-group">
+                    <label>User Mention Settings</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userMentionColor">User Mention Background Color</label>
+                            <input type="color" id="userMentionColor" value="#5865f2">
+                        </div>
+                        <div class="form-group">
+                            <label for="userMentionTextColor">User Mention Text Color</label>
+                            <input type="color" id="userMentionTextColor" value="#c9cdfb">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Role Mention Settings</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="roleMentionColor">Role Mention Background Color</label>
+                            <input type="color" id="roleMentionColor" value="#5865f2">
+                        </div>
+                        <div class="form-group">
+                            <label for="roleMentionTextColor">Role Mention Text Color</label>
+                            <input type="color" id="roleMentionTextColor" value="#c9cdfb">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="customRoles">Custom Roles (One per line)</label>
+                        <textarea id="customRoles" rows="3" placeholder="Moderator&#10;Admin&#10;VIP"></textarea>
+                    </div>
+                </div>
             </div>
             
             <div class="message-control-buttons">
@@ -419,6 +617,7 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
             const savedProfiles = document.getElementById('savedProfiles');
             const usernameInput = document.getElementById('username');
             const usernameColorInput = document.getElementById('usernameColor');
@@ -435,13 +634,120 @@
             const preview = document.getElementById('preview');
             const downloadButton = document.getElementById('downloadButton');
             
+            // Welcome message elements
+            const welcomeTitleInput = document.getElementById('welcomeTitle');
+            const welcomeContentInput = document.getElementById('welcomeContent');
+            const serverNameInput = document.getElementById('serverName');
+            const welcomeColorInput = document.getElementById('welcomeColor');
+            const addWelcomeMessageButton = document.getElementById('addWelcomeMessage');
+            
+            // Ping settings elements
+            const userMentionColorInput = document.getElementById('userMentionColor');
+            const userMentionTextColorInput = document.getElementById('userMentionTextColor');
+            const roleMentionColorInput = document.getElementById('roleMentionColor');
+            const roleMentionTextColorInput = document.getElementById('roleMentionTextColor');
+            const customRolesInput = document.getElementById('customRoles');
+            
+            // Tab elements
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Format buttons
+            const formatButtons = document.querySelectorAll('.format-btn');
+            
+            // Variables
             let avatarImage = null;
             let attachmentImage = null;
             let profiles = JSON.parse(localStorage.getItem('discordProfiles')) || [];
+            let customRoles = [];
             
             // Set current time as default
             const now = new Date();
             timestampInput.value = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            // Tab functionality
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    document.getElementById(`${this.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+            
+            // Formatting buttons
+            formatButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const format = this.dataset.format;
+                    const textarea = messageContentInput;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const selectedText = textarea.value.substring(start, end);
+                    
+                    let formattedText = '';
+                    let cursorPosition = 0;
+                    
+                    switch(format) {
+                        case 'bold':
+                            formattedText = `**${selectedText}**`;
+                            cursorPosition = 2;
+                            break;
+                        case 'italic':
+                            formattedText = `*${selectedText}*`;
+                            cursorPosition = 1;
+                            break;
+                        case 'underline':
+                            formattedText = `__${selectedText}__`;
+                            cursorPosition = 2;
+                            break;
+                        case 'strikethrough':
+                            formattedText = `~~${selectedText}~~`;
+                            cursorPosition = 2;
+                            break;
+                        case 'code':
+                            formattedText = `\`${selectedText}\``;
+                            cursorPosition = 1;
+                            break;
+                        case 'codeblock':
+                            formattedText = `\`\`\`\n${selectedText}\n\`\`\``;
+                            cursorPosition = 4;
+                            break;
+                        case 'spoiler':
+                            formattedText = `||${selectedText}||`;
+                            cursorPosition = 2;
+                            break;
+                        case 'quote':
+                            formattedText = `> ${selectedText}`;
+                            cursorPosition = 2;
+                            break;
+                        case 'user-mention':
+                            formattedText = `@${selectedText || 'username'}`;
+                            cursorPosition = 1;
+                            break;
+                        case 'role-mention':
+                            formattedText = `@${selectedText || 'role'}`;
+                            cursorPosition = 1;
+                            break;
+                    }
+                    
+                    // Replace the selected text with the formatted text
+                    textarea.value = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
+                    
+                    // Set the cursor position
+                    if (start === end) {
+                        // No text selected, place cursor in middle of formatting
+                        textarea.selectionStart = start + cursorPosition;
+                        textarea.selectionEnd = start + cursorPosition;
+                    } else {
+                        // Text selected, place cursor after formatted text
+                        textarea.selectionStart = start + formattedText.length;
+                        textarea.selectionEnd = start + formattedText.length;
+                    }
+                    
+                    textarea.focus();
+                });
+            });
             
             // Badge selection change handler
             badgeSelect.addEventListener('change', function() {
@@ -499,6 +805,58 @@
                 localStorage.setItem('discordProfiles', JSON.stringify(profiles));
                 refreshProfilePills();
             });
+            
+            // Update custom roles when input changes
+            customRolesInput.addEventListener('input', function() {
+                customRoles = this.value.split('\n').filter(role => role.trim() !== '');
+            });
+            
+            // Process text for Discord formatting
+            function processDiscordFormatting(text) {
+                // Bold
+                text = text.replace(/\*\*(.*?)\*\*/g, '<span class="text-bold">$1</span>');
+                
+                // Italic
+                text = text.replace(/\*(.*?)\*/g, '<span class="text-italic">$1</span>');
+                
+                // Underline
+                text = text.replace(/__(.*?)__/g, '<span class="text-underline">$1</span>');
+                
+                // Strikethrough
+                text = text.replace(/~~(.*?)~~/g, '<span class="text-strikethrough">$1</span>');
+                
+                // Code blocks
+                text = text.replace(/```(.*?)```/gs, '<div class="text-codeblock">$1</div>');
+                
+                // Inline code
+                text = text.replace(/`([^`]+)`/g, '<span class="text-code">$1</span>');
+                
+                // Spoiler
+                text = text.replace(/\|\|(.*?)\|\|/g, '<span class="text-spoiler">$1</span>');
+                
+                // Quote
+                text = text.replace(/^> (.*?)$/gm, '<div class="text-quote">$1</div>');
+                
+                // User mentions (@username)
+                const userMentionBg = userMentionColorInput.value;
+                const userMentionText = userMentionTextColorInput.value;
+                text = text.replace(/@(\w+)/g, function(match, username) {
+                    return `<span class="mention" style="background-color: ${userMentionBg}; color: ${userMentionText};">@${username}</span>`;
+                });
+                
+                // Role mentions (@role) - Check against custom roles
+                const roleMentionBg = roleMentionColorInput.value;
+                const roleMentionText = roleMentionTextColorInput.value;
+                
+                customRoles.forEach(role => {
+                    if (role.trim() !== '') {
+                        const roleRegex = new RegExp(`@(${role.trim()})`, 'g');
+                        text = text.replace(roleRegex, `<span class="role-mention" style="background-color: ${roleMentionBg}; color: ${roleMentionText};">@$1</span>`);
+                    }
+                });
+                
+                return text;
+            }
             
             // Add message button handler
             addMessageButton.addEventListener('click', function() {
@@ -600,16 +958,14 @@
                 messageHeader.appendChild(timestamp);
                 message.appendChild(messageHeader);
                 
-                // Message content with mentions
+                // Message content with formatting and mentions
                 const messageContentEl = document.createElement('div');
                 messageContentEl.className = 'message-content';
                 
-                // Process mentions in content
-                let processedContent = messageContent;
-                const mentionRegex = /@(\w+)/g;
-                processedContent = processedContent.replace(mentionRegex, '<span class="mention">@$1</span>');
-                
+                // Process formatting and mentions
+                let processedContent = processDiscordFormatting(messageContent);
                 messageContentEl.innerHTML = processedContent;
+                
                 message.appendChild(messageContentEl);
                 
                 // Attachment
@@ -632,6 +988,53 @@
                 replyToInput.value = '';
                 attachmentInput.value = '';
                 attachmentImage = null;
+                                // Scroll to bottom of preview
+                preview.scrollTop = preview.scrollHeight;
+            });
+            
+            // Add welcome message button handler
+            addWelcomeMessageButton.addEventListener('click', function() {
+                const welcomeTitle = welcomeTitleInput.value.trim();
+                const welcomeContent = welcomeContentInput.value.trim();
+                const serverName = serverNameInput.value.trim();
+                
+                if (!welcomeTitle || !welcomeContent) {
+                    alert('Please enter both a title and content for the welcome message');
+                    return;
+                }
+                
+                // Create welcome message element
+                const welcomeMessage = document.createElement('div');
+                welcomeMessage.className = 'welcome-message';
+                welcomeMessage.style.borderLeftColor = welcomeColorInput.value;
+                
+                const welcomeTitleEl = document.createElement('div');
+                welcomeTitleEl.className = 'welcome-title';
+                welcomeTitleEl.textContent = welcomeTitle;
+                
+                const welcomeContentEl = document.createElement('div');
+                welcomeContentEl.className = 'welcome-content';
+                
+                // Process server name if provided
+                let processedContent = welcomeContent;
+                if (serverName) {
+                    processedContent = processedContent.replace(/{server}/g, `<strong>${serverName}</strong>`);
+                }
+                
+                welcomeContentEl.innerHTML = processedContent;
+                
+                welcomeMessage.appendChild(welcomeTitleEl);
+                welcomeMessage.appendChild(welcomeContentEl);
+                
+                preview.appendChild(welcomeMessage);
+                
+                // Clear inputs
+                welcomeTitleInput.value = '';
+                welcomeContentInput.value = '';
+                serverNameInput.value = '';
+                
+                // Scroll to bottom of preview
+                preview.scrollTop = preview.scrollHeight;
             });
             
             // Clear all messages button handler
@@ -639,15 +1042,18 @@
                 preview.innerHTML = '';
             });
             
-            // Download button handler
+            // Download as image button handler
             downloadButton.addEventListener('click', function() {
-                html2canvas(document.querySelector('.preview-container'), {
-                    backgroundColor: '#313338',
+                // Use html2canvas to capture the preview
+                html2canvas(preview, {
+                    backgroundColor: null,
                     scale: 2,
+                    logging: false,
+                    allowTaint: true,
                     useCORS: true
                 }).then(canvas => {
                     const link = document.createElement('a');
-                    link.download = 'discord-messages.png';
+                    link.download = 'discord-message.png';
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                 });
@@ -656,10 +1062,10 @@
             // Load saved profiles
             function refreshProfilePills() {
                 savedProfiles.innerHTML = '';
+                
                 profiles.forEach(profile => {
                     const pill = document.createElement('div');
                     pill.className = 'profile-pill';
-                    pill.setAttribute('data-username', profile.username);
                     
                     const img = document.createElement('img');
                     img.src = profile.avatar;
@@ -671,34 +1077,33 @@
                     pill.appendChild(name);
                     
                     pill.addEventListener('click', function() {
-                        loadProfile(profile.username);
+                        loadProfile(profile);
                     });
                     
                     savedProfiles.appendChild(pill);
                 });
             }
             
-            // Load profile data
-            function loadProfile(username) {
-                const profile = profiles.find(p => p.username === username);
-                if (profile) {
-                    usernameInput.value = profile.username;
-                    usernameColorInput.value = profile.usernameColor;
-                    badgeSelect.value = profile.badge;
-                    customBadgeInput.value = profile.customBadge || '';
-                    customBadgeInput.style.display = profile.badge === 'custom' ? 'block' : 'none';
-                    avatarImage = profile.avatar;
-                }
+            // Load profile data into form
+            function loadProfile(profile) {
+                usernameInput.value = profile.username;
+                usernameColorInput.value = profile.usernameColor || '#ffffff';
+                badgeSelect.value = profile.badge || 'none';
+                customBadgeInput.value = profile.customBadge || '';
+                customBadgeInput.style.display = profile.badge === 'custom' ? 'block' : 'none';
+                avatarImage = profile.avatar;
             }
             
             // Initialize
             refreshProfilePills();
             
-            // Load html2canvas script dynamically
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-            document.head.appendChild(script);
+            // Load html2canvas from CDN if not already loaded
+            if (typeof html2canvas === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+                document.head.appendChild(script);
+            }
         });
     </script>
 </body>
-    </html>
+</html>
